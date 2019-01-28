@@ -1,18 +1,100 @@
 package com.kalil.csa;
 
+import android.content.Context;
+
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
+
 import android.text.TextUtils;
+
+import android.util.Log;
+
+import android.view.LayoutInflater;
 import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
+
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import android.content.Intent;
+
+import java.util.ArrayList;
+
+// Needed by the Drawer
+// Controls an individual item on the menu
+class ListItem {
+    String mTitle;
+    String mSubtitle;
+    int mIcon;
+
+    ListItem(String title, String subtitle, int icon) {
+        mTitle = title;
+        mSubtitle = subtitle;
+        mIcon = icon;
+    }
+}
+
+
+// The actual drawer backend
+class DrawerListAdapter extends BaseAdapter {
+    Context mContext;
+    ArrayList<ListItem> mNavItems;
+
+    DrawerListAdapter(Context context, ArrayList<ListItem> listItems) {
+        mContext = context;
+        mNavItems = listItems;
+    }
+
+    @Override
+    public int getCount() {
+        return mNavItems.size();
+    }
+
+    @Override
+    public Object getItem(int position) {
+        return mNavItems.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    public View getView(int position, View convertView, ViewGroup parent) {
+        View view;
+
+        if (convertView == null) {
+            LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            view = inflater.inflate(R.layout.drawer_item, null);
+        } else {
+            view = convertView;
+        }
+
+        TextView titleView = (TextView) view.findViewById(R.id.Title);
+        TextView subtitleView = (TextView) view.findViewById(R.id.subTitle);
+        ImageView iconView = (ImageView) view.findViewById(R.id.Icon);
+
+        titleView.setText(mNavItems.get(position).mTitle);
+        subtitleView.setText(mNavItems.get(position).mSubtitle);
+        iconView.setImageResource(mNavItems.get(position).mIcon);
+
+        return view;
+    }
+}
+
 
 /**
  * A login screen that offers login via username/password.
@@ -24,6 +106,35 @@ public class LoginActivity extends AppCompatActivity{
     // UI references.
     private EditText mUsernameView;
     private EditText mPasswordView;
+
+    // Drawer variables
+    ListView mDrawerList;
+    RelativeLayout mDrawerPane;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private DrawerLayout mDrawerLayout;
+    ArrayList<ListItem> mListItems = new ArrayList<>();
+
+
+    // Hamburger menu
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Pass the event to ActionBarDrawerToggle
+        // If it returns true, then it has handled
+        // the nav drawer indicator touch event
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        // Handle your other action bar items...
+
+        return super.onOptionsItemSelected(item);
+    }
 
 
     @Override
@@ -37,6 +148,62 @@ public class LoginActivity extends AppCompatActivity{
         // Set up the login form.
         mUsernameView = (EditText) findViewById(R.id.username);
         mPasswordView = (EditText) findViewById(R.id.password);
+
+        // Set up each drawer item
+        mListItems.add(new ListItem("Inicio", "Tela inicial", R.mipmap.ic_launcher_round));
+        mListItems.add(new ListItem("Configuracoes", "Mude suas configuraçoes", R.mipmap.ic_launcher_round));
+        mListItems.add(new ListItem("Sobre", "Saiba mais sobre este app", R.mipmap.ic_launcher_round));
+
+        // DrawerLayout
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.activity_view);
+
+        // Populate the Navigtion Drawer with options
+        mDrawerPane = (RelativeLayout) findViewById(R.id.drawerPane);
+        mDrawerList = (ListView) findViewById(R.id.navList);
+        DrawerListAdapter adapter = new DrawerListAdapter(this, mListItems);
+        mDrawerList.setAdapter(adapter);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
+        // Drawer Item click listeners
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                selectItemFromDrawer(position);
+                }
+                /*
+                * Called when a particular item from the navigation drawer
+                * is selected.
+                * */
+                private void selectItemFromDrawer(int position) {
+                    setTitle(mListItems.get(position).mTitle);
+
+                    // Close the drawer
+                    mDrawerLayout.closeDrawer(mDrawerPane);
+                }
+        });
+
+
+        // Hamburger menu
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+
+                invalidateOptionsMenu();
+            }
+
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                Log.d(TAG, "onDrawerClosed: " + getTitle());
+
+                invalidateOptionsMenu();
+            }
+        };
+
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
 
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
