@@ -110,6 +110,7 @@ public class WebviewActivity extends AppCompatActivity {
     public void openLogin() {
         Intent login = new Intent(this, LoginActivity.class);
         startActivity(login);
+        finish();
     }
 
 
