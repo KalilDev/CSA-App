@@ -1,17 +1,27 @@
 package com.kalil.csa;
 
+// android.content
 import android.content.Context;
 
+// android.net
+import android.net.Uri;
+
+// android.support
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 
+// android.os
 import android.os.Bundle;
 
+// android.text
 import android.text.TextUtils;
 
+// android.util
 import android.util.Log;
 
+// android.view
 import android.view.LayoutInflater;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -20,6 +30,7 @@ import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 
+// android.widget
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -29,9 +40,9 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import android.content.Intent;
-
+// java.util
 import java.util.ArrayList;
+
 
 // Needed by the Drawer
 // Controls an individual item on the menu
@@ -99,7 +110,9 @@ class DrawerListAdapter extends BaseAdapter {
 /**
  * A login screen that offers login via username/password.
  */
-public class LoginActivity extends AppCompatActivity{
+public class LoginActivity extends AppCompatActivity
+    implements WebviewFragment.OnFragmentInteractionListener
+    {
     // Log tag
     public static final String TAG = "CSA-Shitty-App";
 
@@ -113,7 +126,6 @@ public class LoginActivity extends AppCompatActivity{
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
     ArrayList<ListItem> mListItems = new ArrayList<>();
-
 
     // Hamburger menu
     @Override
@@ -130,9 +142,7 @@ public class LoginActivity extends AppCompatActivity{
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
-
         // Handle your other action bar items...
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -279,10 +289,11 @@ public class LoginActivity extends AppCompatActivity{
     // Start the webview activity and parse the username and password params
     // from the function as extra info on the intent.
     public void openWebview(String... param) {
-        Intent webview = new Intent(this, WebviewActivity.class);
-        webview.putExtra("username", param[0]);
-        webview.putExtra("password", param[1]);
-        startActivity(webview);
+        //Fragment webview = new WebviewFragment();
+        FragmentTransaction webtransaction = getSupportFragmentManager().beginTransaction();
+        webtransaction.replace(R.id.activity_view, WebviewFragment.newInstance(param[0], param[1]));
+        webtransaction.addToBackStack(null);
+        webtransaction.commit();
     }
 
 
@@ -299,6 +310,13 @@ public class LoginActivity extends AppCompatActivity{
         // Kill myself
         moveTaskToBack(true);
         finish();
+    }
+
+
+    @Override
+    public void onFragmentInteraction(Uri uri){
+        // Google wants me to implement this.
+        // Shame on them.
     }
 }
 
